@@ -1,36 +1,30 @@
-﻿# .gitignore - Ignore rules for Python and Flutter projects
-
-.venv/
-venv/
-ENV/
-env/
+﻿# Python
 __pycache__/
 *.py[cod]
-*.egg-info/
-.pytest_cache/
-.mypy_cache/
-build/
-.dart_tool/
-.flutter-plugins
-ios/Pods/
-android/.gradle/
-.gradle/
-.idea/
-.vscode/
-.DS_Store
-Thumbs.db
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Environment
 .env
 .env.local
 
-# Database files (should not be committed - contain local data)
+# Database
 *.db
 *.sqlite
 *.sqlite3
 
-# Logs
-logs/
-*.log
+# IDE
+.vscode/
+.idea/
 
-# Python cache
-*.pyc
-__pycache__/
+# Flutter
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.packages
+frontend/pubspec.lock
