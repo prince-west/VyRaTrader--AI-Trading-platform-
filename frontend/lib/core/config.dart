@@ -18,11 +18,11 @@ class Config {
 
     // Development defaults
     if (kDebugMode) {
-      return 'http://localhost:8000';
+      return 'https://vyratrader.onrender.com';
     }
 
-    // Production fallback (update when deployed)
-    return dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000';
+    // Production fallback
+    return dotenv.env['API_BASE_URL'] ?? 'https://vyratrader.onrender.com';
   }
 
   /// WebSocket URL for real-time updates

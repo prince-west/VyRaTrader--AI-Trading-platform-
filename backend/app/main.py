@@ -64,13 +64,16 @@ def create_app() -> FastAPI:
                 "https://www.vyratrader.com",
                 "https://app.vyratrader.com",
                 "https://api.vyratrader.com",
+                "https://vyratrader.onrender.com",
             ]
     else:
-        # Development/Staging: allow all localhost and 127.0.0.1 origins
+        # Development/Staging: allow all origins including Render
         origins = ["*"]  # Allow all origins in development
         # Add custom origins from env if provided
         if allowed_origins_env:
             origins.extend([origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()])
+        # Also explicitly allow Render domain
+        origins.append("https://vyratrader.onrender.com")
 
     logger.info(f"CORS enabled for origins: {origins}")
 

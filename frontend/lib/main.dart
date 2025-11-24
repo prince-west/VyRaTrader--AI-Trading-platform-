@@ -37,7 +37,7 @@ Future<void> main() async {
     debugPrint(
         '⚠️ dotenv.load() failed: $e — using fallback values for web/CI');
     // Provide a minimal fallback so code that reads dotenv.env won't crash.
-    dotenv.env['API_BASE_URL'] = 'http://127.0.0.1:8000';
+    dotenv.env['API_BASE_URL'] = 'https://vyratrader.onrender.com';
   }
 
   // 2) Initialize security AFTER dotenv is ready.
@@ -53,7 +53,7 @@ Future<void> main() async {
   final envUrl = dotenv.env['API_BASE_URL'];
   final apiBase = envUrl != null && envUrl.isNotEmpty 
       ? (envUrl.endsWith('/api/v1') ? envUrl : '$envUrl/api/v1')
-      : 'http://127.0.0.1:8000/api/v1';
+      : 'https://vyratrader.onrender.com/api/v1';
   final api = ApiClient(baseUrl: apiBase);
   debugPrint('✅ ApiClient created with base: $apiBase');
 

@@ -31,10 +31,10 @@ class ApiClient {
     // ✅ Always prefer .env variable if present
     final envUrl = dotenv.env['API_BASE_URL'];
     if (envUrl != null && envUrl.isNotEmpty) {
-      // If .env has http://127.0.0.1:8000, append /api/v1
+      // If .env URL doesn't have /api/v1, append it
       this.baseUrl = envUrl.endsWith('/api/v1') ? envUrl : '$envUrl/api/v1';
     } else {
-      this.baseUrl = baseUrl ?? 'http://127.0.0.1:8000/api/v1';
+      this.baseUrl = baseUrl ?? 'https://vyratrader.onrender.com/api/v1';
     }
     print("✅ ApiClient using baseUrl: ${this.baseUrl}");
   }
@@ -49,10 +49,10 @@ class ApiClient {
 
     try {
       // Try both health endpoints
-      var uri = Uri.parse('http://127.0.0.1:8000/api/v1/health');
+      var uri = Uri.parse('https://vyratrader.onrender.com/api/v1/health');
       var response = await http.get(uri).timeout(const Duration(seconds: 5));
       if (response.statusCode != 200) {
-        uri = Uri.parse('http://127.0.0.1:8000/health');
+        uri = Uri.parse('https://vyratrader.onrender.com/health');
         response = await http.get(uri).timeout(const Duration(seconds: 5));
       }
       _isHealthy = response.statusCode == 200;
