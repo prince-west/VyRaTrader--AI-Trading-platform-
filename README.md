@@ -2,7 +2,15 @@
 
 An institutional-grade trading platform that combines 20+ AI trading strategies to generate high-probability signals for cryptocurrencies, forex, and stocks. Features an AI assistant named Prince that provides real-time trading recommendations and automated portfolio management.
 
-🌐 **Live Demo:** [DEPLOYMENT URL - Add after deploying]
+## 🚀 Live Demo
+
+*Backend API:* https://vyratrader.onrender.com  
+
+*Demo Video:* https://youtu.be/LGJbgguBsng?si=OzlT8Srnq-gFPpJT  
+
+📱 *Note:* Mobile-first application built with Flutter. Full demo available in video above.
+
+> ⚠ Backend hosted on free tier - may take 30 seconds to wake from sleep on first request.
 
 ![VyRaTrader Dashboard](screenshots/dashboard.jpg)
 
