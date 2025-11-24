@@ -342,14 +342,12 @@ class ApiClient {
     
     if (!kIsWeb) {
       // Platform-specific exceptions only available on mobile
-      try {
-        if (error is io.SocketException) {
-          userMessage = 'Network connection failed. Please check your internet connection.';
-        } else if (error is io.HttpException) {
-          userMessage = 'Network error occurred. Please check your connection.';
-        }
-      } catch (_) {
-        // Ignore if io exceptions not available
+      // Use string matching since types aren't available on web
+      final errorStr = error.toString().toLowerCase();
+      if (errorStr.contains('socket') || errorStr.contains('network')) {
+        userMessage = 'Network connection failed. Please check your internet connection.';
+      } else if (errorStr.contains('http')) {
+        userMessage = 'Network error occurred. Please check your connection.';
       }
     }
     
