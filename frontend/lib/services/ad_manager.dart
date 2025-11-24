@@ -2,7 +2,6 @@
 // Google Mobile Ads Manager - Production Ready
 // Handles interstitial and rewarded ads with proper initialization
 
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -27,18 +26,16 @@ class AdManager {
     if (kIsWeb) {
       return 'ca-app-pub-3940256099942544/1033173712'; // Web Test Interstitial
     }
-    return Platform.isAndroid
-        ? 'ca-app-pub-3940256099942544/1033173712' // Android Test Interstitial
-        : 'ca-app-pub-3940256099942544/4411468910'; // iOS Test Interstitial
+    // For mobile, use Android as default (can be detected at runtime if needed)
+    return 'ca-app-pub-3940256099942544/1033173712'; // Android Test Interstitial
   }
 
   static String get _testRewardedAdUnitId {
     if (kIsWeb) {
       return 'ca-app-pub-3940256099942544/5224354917'; // Web Test Rewarded
     }
-    return Platform.isAndroid
-        ? 'ca-app-pub-3940256099942544/5224354917' // Android Test Rewarded
-        : 'ca-app-pub-3940256099942544/1712485313'; // iOS Test Rewarded
+    // For mobile, use Android as default (can be detected at runtime if needed)
+    return 'ca-app-pub-3940256099942544/5224354917'; // Android Test Rewarded
   }
 
   // Production Ad Unit IDs (update these when ready)
@@ -46,18 +43,14 @@ class AdManager {
     if (kIsWeb) {
       return ''; // Replace with your Web production ID
     }
-    return Platform.isAndroid
-        ? '' // Replace with your Android production ID
-        : ''; // Replace with your iOS production ID
+    return ''; // Replace with your production ID
   }
 
   static String get _productionRewardedAdUnitId {
     if (kIsWeb) {
       return ''; // Replace with your Web production ID
     }
-    return Platform.isAndroid
-        ? '' // Replace with your Android production ID
-        : ''; // Replace with your iOS production ID
+    return ''; // Replace with your production ID
   }
 
   // Use test IDs for now - switch to production IDs when ready

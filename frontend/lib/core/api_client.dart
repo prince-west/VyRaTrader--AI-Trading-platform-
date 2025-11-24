@@ -1,11 +1,14 @@
 // lib/core/api_client.dart
 import 'dart:convert';
 import 'dart:async';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'secure_storage.dart';
+
+// Conditional import for platform-specific exceptions
+import 'dart:io' if (dart.library.html) 'dart:html' as io;
 
 class ApiException implements Exception {
   final int statusCode;
@@ -337,12 +340,21 @@ class ApiClient {
 
     String userMessage = 'Network connection failed. Please check your internet or backend.';
     
-    if (error is SocketException) {
-      userMessage = 'Network connection failed. Please check your internet connection.';
-    } else if (error is TimeoutException) {
+    if (!kIsWeb) {
+      // Platform-specific exceptions only available on mobile
+      try {
+        if (error is io.SocketException) {
+          userMessage = 'Network connection failed. Please check your internet connection.';
+        } else if (error is io.HttpException) {
+          userMessage = 'Network error occurred. Please check your connection.';
+        }
+      } catch (_) {
+        // Ignore if io exceptions not available
+      }
+    }
+    
+    if (error is TimeoutException) {
       userMessage = 'Request timed out. Please try again.';
-    } else if (error is HttpException) {
-      userMessage = 'Network error occurred. Please check your connection.';
     }
 
     // Log error for debugging (in production, use proper logging service)

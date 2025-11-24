@@ -16,6 +16,10 @@ class SecurityManager {
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device,
     ),
+    webOptions: WebOptions(
+      // Web-specific options for secure storage
+      publicKeyEncoding: WebPublicKeyEncoding.none,
+    ),
   );
 
   String? _encryptionKey;

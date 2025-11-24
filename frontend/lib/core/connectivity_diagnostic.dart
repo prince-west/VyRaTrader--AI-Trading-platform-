@@ -1,5 +1,4 @@
 // lib/core/connectivity_diagnostic.dart
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'api_client.dart';
 

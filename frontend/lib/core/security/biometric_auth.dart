@@ -1,4 +1,5 @@
 // lib/core/security/biometric_auth.dart
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
@@ -7,12 +8,13 @@ class BiometricAuth {
   factory BiometricAuth() => _instance;
   BiometricAuth._internal();
 
-  final LocalAuthentication _auth = LocalAuthentication();
+  final LocalAuthentication? _auth = kIsWeb ? null : LocalAuthentication();
 
   /// Check if biometric authentication is available on this device
   Future<bool> isAvailable() async {
+    if (kIsWeb || _auth == null) return false;
     try {
-      return await _auth.canCheckBiometrics;
+      return await _auth!.canCheckBiometrics;
     } catch (_) {
       return false;
     }
@@ -20,8 +22,9 @@ class BiometricAuth {
 
   /// Check if device is capable of biometric authentication
   Future<bool> isDeviceSupported() async {
+    if (kIsWeb || _auth == null) return false;
     try {
-      return await _auth.isDeviceSupported();
+      return await _auth!.isDeviceSupported();
     } catch (_) {
       return false;
     }
@@ -29,8 +32,9 @@ class BiometricAuth {
 
   /// Get list of available biometric types (fingerprint, face, iris, etc.)
   Future<List<BiometricType>> getAvailableBiometrics() async {
+    if (kIsWeb || _auth == null) return [];
     try {
-      return await _auth.getAvailableBiometrics();
+      return await _auth!.getAvailableBiometrics();
     } catch (_) {
       return [];
     }
@@ -40,15 +44,16 @@ class BiometricAuth {
   Future<bool> authenticate({
     required String reason,
   }) async {
+    if (kIsWeb || _auth == null) return false;
     try {
       // Check if biometrics are available first
-      final canCheck = await _auth.canCheckBiometrics;
+      final canCheck = await _auth!.canCheckBiometrics;
       if (!canCheck) {
         return false;
       }
 
       // Perform authentication
-      return await _auth.authenticate(
+      return await _auth!.authenticate(
         localizedReason: reason,
         options: const AuthenticationOptions(
           stickyAuth: true,
@@ -79,13 +84,14 @@ class BiometricAuth {
   Future<bool> authenticateWithFallback({
     required String reason,
   }) async {
+    if (kIsWeb || _auth == null) return false;
     try {
-      final canCheck = await _auth.canCheckBiometrics;
+      final canCheck = await _auth!.canCheckBiometrics;
       if (!canCheck) {
         return false;
       }
 
-      return await _auth.authenticate(
+      return await _auth!.authenticate(
         localizedReason: reason,
         options: const AuthenticationOptions(
           stickyAuth: true,
@@ -101,8 +107,9 @@ class BiometricAuth {
 
   /// Stop authentication (for cancellation)
   Future<void> stopAuthentication() async {
+    if (kIsWeb || _auth == null) return;
     try {
-      await _auth.stopAuthentication();
+      await _auth!.stopAuthentication();
     } catch (_) {
       // Ignore errors during stop
     }

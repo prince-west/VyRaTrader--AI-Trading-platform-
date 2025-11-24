@@ -1,7 +1,10 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
 import 'security_manager.dart';
+
+// Conditional imports
+import 'dart:io' if (dart.library.html) 'dart:html' as io;
+import 'package:http/io_client.dart' if (dart.library.html) 'package:http/http.dart' as io_client;
 
 class SecureHttpClient extends http.BaseClient {
   final http.Client _inner;
@@ -10,13 +13,16 @@ class SecureHttpClient extends http.BaseClient {
   SecureHttpClient() : _inner = _createSecureClient();
 
   static http.Client _createSecureClient() {
-    final httpClient = HttpClient();
-
-    // Set timeouts
-    httpClient.connectionTimeout = const Duration(seconds: 10);
-    httpClient.idleTimeout = const Duration(seconds: 15);
-
-    return IOClient(httpClient);
+    if (kIsWeb) {
+      // Use standard http client for web (browser handles it)
+      return http.Client();
+    } else {
+      // Use IO client for mobile
+      final httpClient = io.HttpClient();
+      httpClient.connectionTimeout = const Duration(seconds: 10);
+      httpClient.idleTimeout = const Duration(seconds: 15);
+      return io_client.IOClient(httpClient);
+    }
   }
 
   @override
