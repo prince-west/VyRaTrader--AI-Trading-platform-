@@ -1,6 +1,6 @@
 {
-    "buildCommand": "if [ ! -d \"flutter\" ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1; fi && export PATH=\"$PATH:$(pwd)/flutter/bin\" && cd frontend && flutter build web --release",
+    "buildCommand": "ROOT=$(pwd) && if [ ! -d \"flutter\" ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1; fi && export PATH=\"$PATH:$ROOT/flutter/bin\" && cd frontend && $ROOT/flutter/bin/flutter build web --release",
     "outputDirectory": "frontend/build/web",
-    "installCommand": "if [ ! -d \"flutter\" ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1; fi && export PATH=\"$PATH:$(pwd)/flutter/bin\" && cd frontend && flutter pub get",
+    "installCommand": "ROOT=$(pwd) && if [ ! -d \"flutter\" ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1; fi && export PATH=\"$PATH:$ROOT/flutter/bin\" && cd frontend && $ROOT/flutter/bin/flutter pub get",
     "framework": null
   }
