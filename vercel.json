@@ -1,6 +1,7 @@
 {
-    "buildCommand": "cd frontend && flutter build web --release",
-    "outputDirectory": "frontend/build/web",
+    "buildCommand": "flutter build web --release",
+    "outputDirectory": "build/web",
     "installCommand": "if ! command -v flutter &> /dev/null; then git clone https://github.com/flutter/flutter.git -b stable --depth 1 && export PATH=\"$PATH:`pwd`/flutter/bin\"; fi && flutter pub get",
-    "framework": null
+    "framework": null,
+    "rootDirectory": "frontend"
   }
