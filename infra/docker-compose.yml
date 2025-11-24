@@ -1,0 +1,102 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vyra}
+      POSTGRES_USER: ${POSTGRES_USER:-vyra}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vyra}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vyra} -d ${POSTGRES_DB:-vyra}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-vyra}:${POSTGRES_PASSWORD:-vyra}@postgres:5432/${POSTGRES_DB:-vyra}
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${POSTGRES_USER:-vyra}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-vyra}
+      DATABASE_NAME: ${POSTGRES_DB:-vyra}
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # App settings
+      SECRET_KEY: ${SECRET_KEY:-daydreamer20}
+      SANDBOX_WEBHOOK_SECRET: ${SANDBOX_WEBHOOK_SECRET:-daydreamer20}
+      DEBUG: ${DEBUG:-false}
+      ENV: ${ENV:-production}
+      
+      # CORS
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      
+      # Data collection
+      COLLECTION_INTERVAL: ${COLLECTION_INTERVAL:-30}
+      CRYPTO_SYMBOLS: ${CRYPTO_SYMBOLS:-BTCUSDT,ETHUSDT}
+      COINGECKO_IDS: ${COINGECKO_IDS:-bitcoin,ethereum}
+      FOREX_PAIRS: ${FOREX_PAIRS:-EURUSD,USDJPY}
+      NEWS_QUERY: ${NEWS_QUERY:-markets}
+      FRED_SERIES: ${FRED_SERIES:-DGS10}
+      
+      # API Keys (optional)
+      NEWSAPI_KEY: ${NEWSAPI_KEY:-}
+      FRED_API_KEY: ${FRED_API_KEY:-}
+      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../backend:/app
+      - backend_logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  pgadmin:
+    image: dpage/pgadmin4:8.12
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@localhost}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-8080}:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  pgdata:
+  redisdata:
+  backend_logs:
+  pgadmin_data:

@@ -1,0 +1,192 @@
+{
+  "files": {
+    "app/ai/ensemble_core.py": """
+import os
+import threading
+import logging
+import pickle
+import time
+from typing import Dict, List, Optional, Tuple
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.exceptions import NotFittedError
+
+logger = logging.getLogger(__name__)
+
+# Strategy module names we want to import (best-effort)
+STRATEGY_NAMES = ["trend", "momentum", "mean_reversion", "breakout", "sentiment"]
+
+# Try to import strategy modules under common package layouts
+_strategy_modules: Dict[str, Optional[object]] = {}
+for name in STRATEGY_NAMES:
+    mod = None
+    for pkg in ("app.strategies", "backend.app.strategies"):
+        try:
+            mod = __import__(f"{pkg}.{name}", fromlist=["*"])
+            break
+        except Exception:
+            mod = None
+    _strategy_modules[name] = mod
+
+# Paths and config
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+MODEL_DIR = os.path.join(BASE_DIR, "models")
+MODEL_PATH = os.path.join(MODEL_DIR, "meta_model.pkl")
+TRAIN_DATA_PATH = os.path.join(MODEL_DIR, "meta_training_data.pkl")
+
+class EnsembleCore:
+    \"\"\"Core ensemble implementation that combines strategy signals\"\"\"
+    def __init__(self):
+        self.strategy_names = STRATEGY_NAMES
+        self._strategy_modules = _strategy_modules
+        self.model = self._load_model()
+        self._training_data = []
+        self._weights = {n: 1.0 for n in self.strategy_names}
+    
+    def _load_model(self):
+        try:
+            if os.path.exists(MODEL_PATH):
+                with open(MODEL_PATH, "rb") as f:
+                    return pickle.load(f)
+        except Exception:
+            logger.exception("Failed to load model")
+        return None
+
+    def collect_signals(self, symbol: str) -> Dict[str, float]:
+        signals = {}
+        for name in self.strategy_names:
+            try:
+                mod = self._strategy_modules.get(name)
+                if not mod:
+                    continue
+                val = getattr(mod, "generate_signal")(symbol)
+                if val is not None:
+                    signals[name] = float(val)
+            except Exception:
+                logger.debug(f"Failed to get signal from {name}", exc_info=True)
+        return signals
+
+    def generate_final_signal(self, symbol: str) -> str:
+        signals = self.collect_signals(symbol)
+        if not signals:
+            return "hold"
+        
+        # Simple weighted average of available signals
+        total = 0.0
+        count = 0
+        for name, val in signals.items():
+            weight = self._weights.get(name, 1.0)
+            total += val * weight
+            count += weight
+        
+        if count == 0:
+            return "hold"
+            
+        score = total / count
+        if score >= 0.25:
+            return "buy"
+        if score <= -0.25:
+            return "sell"
+        return "hold"
+
+_ensemble = EnsembleCore()
+
+def generate_final_signal(symbol: str) -> str:
+    \"\"\"Module-level convenience function\"\"\"
+    return _ensemble.generate_final_signal(symbol)
+""",
+
+    "app/ai/rl_agent.py": """
+import os
+import threading
+import logging
+import pickle
+from datetime import datetime, timezone
+from typing import Optional, Dict
+import numpy as np
+import pandas as pd
+import torch
+from stable_baselines3 import PPO
+import gym
+from gym import spaces
+
+logger = logging.getLogger(__name__)
+
+class PortfolioEnv(gym.Env):
+    \"\"\"Simple trading environment\"\"\"
+    def __init__(self, prices: pd.Series):
+        super().__init__()
+        self.prices = prices
+        self.returns = prices.pct_change().fillna(0)
+        self.observation_space = spaces.Box(-np.inf, np.inf, (10,))
+        self.action_space = spaces.Discrete(3)  # sell/hold/buy
+        self.reset()
+    
+    def reset(self):
+        self.position = 0
+        self.steps = 0
+        return self._get_obs()
+        
+    def step(self, action):
+        # -1/0/1 position
+        new_pos = action - 1
+        reward = self.position * self.returns.iloc[self.steps]
+        self.position = new_pos
+        self.steps += 1
+        
+        done = self.steps >= len(self.returns) - 1
+        return self._get_obs(), reward, done, {}
+        
+    def _get_obs(self):
+        idx = min(self.steps, len(self.returns)-1)
+        return np.array([self.position] + 
+                       self.returns.iloc[max(0,idx-9):idx+1].tolist())
+
+class RLAgent:
+    \"\"\"RL trading agent using PPO\"\"\"
+    def __init__(self):
+        self.model = None
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+    def train(self, prices: pd.Series, timesteps: int = 10000):
+        env = PortfolioEnv(prices)
+        self.model = PPO("MlpPolicy", env, device=self.device)
+        self.model.learn(total_timesteps=timesteps)
+        
+    def predict(self, obs: np.ndarray) -> int:
+        if self.model is None:
+            return 1  # hold
+        action, _ = self.model.predict(obs)
+        return int(action)
+
+_agent = RLAgent()
+
+def get_action(obs: np.ndarray) -> int:
+    \"\"\"Module-level convenience function\"\"\"
+    return _agent.predict(obs)
+""",
+
+    "app/strategies/trend.py": """
+import numpy as np
+import pandas as pd
+from typing import Optional
+
+def generate_signal(symbol: str, prices: Optional[pd.Series] = None) -> float:
+    \"\"\"Simple trend following signal\"\"\"
+    if prices is None:
+        # In production would fetch from data service
+        return 0.0
+        
+    returns = prices.pct_change()
+    ma_fast = returns.rolling(5).mean()
+    ma_slow = returns.rolling(20).mean()
+    
+    last_fast = ma_fast.iloc[-1]
+    last_slow = ma_slow.iloc[-1]
+    
+    # Normalize to [-1,1]
+    signal = np.tanh(5 * (last_fast - last_slow))
+    return float(signal)
+"""
+  }
+}

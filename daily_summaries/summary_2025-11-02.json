@@ -1,0 +1,11 @@
+{
+  "date": "2025-11-02",
+  "total_signals": 31,
+  "by_strategy": {
+    "momentum": 31
+  },
+  "by_action": {
+    "sell": 8,
+    "buy": 23
+  }
+}
